@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Hugh's Apps</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:ital,wght@0,400;0,500;1,400&family=Fraunces:ital,wght@0,300;0,700;1,300&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --bg: #0d0d0d;
+      --surface: #141414;
+      --card: #1a1a1a;
+      --accent: #ff4d1c;
+      --accent2: #ffcc00;
+      --text: #f0ece4;
+      --muted: #6b6660;
+      --border: #2a2a2a;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Mono', monospace;
+      min-height: 100vh;
+      overflow-x: hidden;
+      cursor: none;
+    }
+
+    /* Custom cursor */
+    .cursor {
+      position: fixed;
+      width: 12px;
+      height: 12px;
+      background: var(--accent);
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 9999;
+      transform: translate(-50%, -50%);
+      transition: transform 0.1s, background 0.2s;
+      mix-blend-mode: difference;
+    }
+    .cursor-ring {
+      position: fixed;
+      width: 36px;
+      height: 36px;
+      border: 1.5px solid var(--accent);
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 9998;
+      transform: translate(-50%, -50%);
+      transition: transform 0.15s ease-out, width 0.2s, height 0.2s, opacity 0.2s;
+      opacity: 0.5;
+    }
+
+    /* Noise texture overlay */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 1000;
+      opacity: 0.35;
+    }
+
+    /* ── HEADER ── */
+    header {
+      position: relative;
+      padding: 80px 60px 60px;
+      border-bottom: 1px solid var(--border);
+      overflow: hidden;
+    }
+
+    .header-bg-text {
+      position: absolute;
+      top: -20px;
+      right: -10px;
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(120px, 18vw, 260px);
+      color: transparent;
+      -webkit-text-stroke: 1px #ffffff08;
+      line-height: 1;
+      user-select: none;
+      pointer-events: none;
+      letter-spacing: -2px;
+    }
+
+    .tag {
+      display: inline-block;
+      font-family: 'DM Mono', monospace;
+      font-size: 11px;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--accent);
+      border: 1px solid var(--accent);
+      padding: 4px 10px;
+      margin-bottom: 24px;
+      opacity: 0;
+      animation: fadeUp 0.6s 0.1s ease forwards;
+    }
+
+    h1 {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(64px, 10vw, 140px);
+      line-height: 0.9;
+      letter-spacing: -1px;
+      margin-bottom: 24px;
+      opacity: 0;
+      animation: fadeUp 0.7s 0.2s ease forwards;
+    }
+
+    h1 span {
+      color: var(--accent);
+      display: block;
+    }
+
+    .subtitle {
+      font-family: 'Fraunces', serif;
+      font-style: italic;
+      font-weight: 300;
+      font-size: clamp(16px, 2vw, 22px);
+      color: var(--muted);
+      max-width: 480px;
+      line-height: 1.6;
+      opacity: 0;
+      animation: fadeUp 0.7s 0.35s ease forwards;
+    }
+
+    /* ── SECTION LABEL ── */
+    .section-label {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 48px 60px 32px;
+    }
+    .section-label span {
+      font-size: 11px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+    .section-label::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    /* ── APPS GRID ── */
+    .apps-grid {
+      padding: 0 60px 80px;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+      gap: 2px;
+    }
+
+    /* ── APP CARD ── */
+    .app-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      padding: 40px 36px;
+      position: relative;
+      overflow: hidden;
+      text-decoration: none;
+      color: inherit;
+      display: block;
+      transition: border-color 0.3s, transform 0.3s;
+      opacity: 0;
+      animation: fadeUp 0.6s ease forwards;
+    }
+
+    .app-card:hover {
+      border-color: var(--accent);
+      transform: translateY(-4px);
+      z-index: 1;
+    }
+
+    .app-card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at 0% 100%, rgba(255,77,28,0.08) 0%, transparent 60%);
+      opacity: 0;
+      transition: opacity 0.4s;
+    }
+    .app-card:hover::before { opacity: 1; }
+
+    .app-number {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 72px;
+      color: #ffffff06;
+      position: absolute;
+      top: 16px;
+      right: 24px;
+      line-height: 1;
+      user-select: none;
+      transition: color 0.3s;
+    }
+    .app-card:hover .app-number { color: rgba(255,77,28,0.08); }
+
+    .app-emoji {
+      font-size: 36px;
+      margin-bottom: 20px;
+      display: block;
+    }
+
+    .app-name {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 36px;
+      letter-spacing: 0.5px;
+      line-height: 1;
+      margin-bottom: 12px;
+      transition: color 0.2s;
+    }
+    .app-card:hover .app-name { color: var(--accent); }
+
+    .app-desc {
+      font-family: 'Fraunces', serif;
+      font-style: italic;
+      font-weight: 300;
+      font-size: 15px;
+      color: var(--muted);
+      line-height: 1.6;
+      margin-bottom: 28px;
+    }
+
+    .app-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 11px;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--accent2);
+      transition: gap 0.2s;
+    }
+    .app-card:hover .app-link { gap: 14px; }
+
+    .app-link svg {
+      width: 14px;
+      height: 14px;
+      transition: transform 0.2s;
+    }
+    .app-card:hover .app-link svg { transform: translateX(4px); }
+
+    /* ── COMING SOON CARD ── */
+    .app-card.coming-soon {
+      border-style: dashed;
+      border-color: #2a2a2a;
+      cursor: default;
+    }
+    .app-card.coming-soon:hover {
+      border-color: #333;
+      transform: none;
+    }
+    .app-card.coming-soon::before { display: none; }
+
+    .coming-badge {
+      display: inline-block;
+      font-size: 10px;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--muted);
+      border: 1px solid #2a2a2a;
+      padding: 3px 8px;
+      margin-bottom: 20px;
+    }
+
+    .coming-soon .app-name { color: #333; }
+    .coming-soon .app-desc { color: #2d2d2d; }
+
+    /* ── FOOTER ── */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 32px 60px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    footer p {
+      font-size: 12px;
+      color: var(--muted);
+      letter-spacing: 0.05em;
+    }
+
+    footer a {
+      color: var(--accent);
+      text-decoration: none;
+      font-size: 12px;
+      letter-spacing: 0.05em;
+      transition: opacity 0.2s;
+    }
+    footer a:hover { opacity: 0.7; }
+
+    /* ── ANIMATIONS ── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(24px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .app-card:nth-child(1) { animation-delay: 0.4s; }
+    .app-card:nth-child(2) { animation-delay: 0.55s; }
+    .app-card:nth-child(3) { animation-delay: 0.7s; }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 640px) {
+      header, .section-label, .apps-grid, footer { padding-left: 24px; padding-right: 24px; }
+      .apps-grid { grid-template-columns: 1fr; }
+      h1 { font-size: 72px; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="cursor" id="cursor"></div>
+  <div class="cursor-ring" id="cursorRing"></div>
+
+  <!-- HEADER -->
+  <header>
+    <div class="header-bg-text">HUGH</div>
+    <div class="tag">Portfolio</div>
+    <h1>Hugh's<span>Apps.</span></h1>
+    <p class="subtitle">Building things that are useful, weird, and occasionally very funny.</p>
+  </header>
+
+  <!-- APPS -->
+  <div class="section-label">
+    <span>Apps</span>
+  </div>
+
+  <div class="apps-grid">
+
+    <!-- App 1: Roast My Friend -->
+    <a class="app-card" href="https://github.com/hst1203/roast-my-friend/blob/main/roast_my_friends.html" target="_blank" rel="noopener">
+      <div class="app-number">01</div>
+      <span class="app-emoji">🔥</span>
+      <div class="app-name">Roast My Friend</div>
+      <p class="app-desc">Enter your friend's details and get a savage, personalised roast. All in good fun — probably.</p>
+      <div class="app-link">
+        View on GitHub
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M5 12h14M12 5l7 7-7 7"/>
+        </svg>
+      </div>
+    </a>
+
+    <!-- Coming soon placeholder -->
+    <div class="app-card coming-soon">
+      <div class="app-number">02</div>
+      <div class="coming-badge">Coming soon</div>
+      <div class="app-name">???</div>
+      <p class="app-desc">The next idea is brewing. Check back soon.</p>
+    </div>
+
+  </div>
+
+  <!-- FOOTER -->
+  <footer>
+    <p>Built by Hugh &mdash; <span id="year"></span></p>
+    <a href="https://github.com/hst1203" target="_blank" rel="noopener">github.com/hst1203 ↗</a>
+  </footer>
+
+  <script>
+    // Year
+    document.getElementById('year').textContent = new Date().getFullYear();
+
+    // Custom cursor
+    const cursor = document.getElementById('cursor');
+    const ring = document.getElementById('cursorRing');
+    let mx = 0, my = 0, rx = 0, ry = 0;
+
+    document.addEventListener('mousemove', e => {
+      mx = e.clientX; my = e.clientY;
+      cursor.style.left = mx + 'px';
+      cursor.style.top  = my + 'px';
+    });
+
+    function animRing() {
+      rx += (mx - rx) * 0.12;
+      ry += (my - ry) * 0.12;
+      ring.style.left = rx + 'px';
+      ring.style.top  = ry + 'px';
+      requestAnimationFrame(animRing);
+    }
+    animRing();
+
+    // Scale cursor on links/cards
+    document.querySelectorAll('a, button').forEach(el => {
+      el.addEventListener('mouseenter', () => {
+        cursor.style.transform = 'translate(-50%,-50%) scale(2)';
+        ring.style.width = '56px';
+        ring.style.height = '56px';
+        ring.style.opacity = '0.3';
+      });
+      el.addEventListener('mouseleave', () => {
+        cursor.style.transform = 'translate(-50%,-50%) scale(1)';
+        ring.style.width = '36px';
+        ring.style.height = '36px';
+        ring.style.opacity = '0.5';
+      });
+    });
+  </script>
+</body>
+</html>
